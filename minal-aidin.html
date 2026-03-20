@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Minal Aidin wal Faizin — Dev Edition</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg2: #161b22;
+      --bg3: #21262d;
+      --green: #3fb950;
+      --green-dim: #238636;
+      --cyan: #58a6ff;
+      --yellow: #e3b341;
+      --orange: #f0883e;
+      --pink: #ff7b72;
+      --purple: #d2a8ff;
+      --white: #e6edf3;
+      --gray: #8b949e;
+      --border: #30363d;
+      --glow-green: 0 0 20px #3fb95066;
+      --glow-cyan: 0 0 20px #58a6ff55;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      font-family: 'Fira Code', monospace;
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ─── MATRIX RAIN CANVAS ─── */
+    #matrix {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      opacity: 0.07;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── SCANLINES ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.03) 2px,
+        rgba(0,0,0,0.03) 4px
+      );
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* ─── WRAPPER ─── */
+    .container {
+      position: relative;
+      z-index: 10;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+
+    /* ─── TERMINAL HEADER ─── */
+    .terminal-window {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(63,185,80,0.12), 0 20px 60px rgba(0,0,0,0.6);
+      animation: slideDown 0.8s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .terminal-bar {
+      background: var(--bg3);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dot {
+      width: 13px; height: 13px;
+      border-radius: 50%;
+    }
+    .dot.red    { background: #ff5f57; }
+    .dot.yellow { background: #febc2e; }
+    .dot.green  { background: #28c840; }
+
+    .terminal-title {
+      margin-left: 10px;
+      font-size: 12px;
+      color: var(--gray);
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* ─── TERMINAL BODY ─── */
+    .terminal-body {
+      padding: 30px 32px 36px;
+    }
+
+    /* ─── TYPING PROMPT ─── */
+    .prompt-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--gray);
+      margin-bottom: 6px;
+      animation: fadeIn 1s ease both;
+      animation-delay: 0.3s;
+    }
+    .prompt-dollar { color: var(--green); font-weight: 700; }
+    .prompt-path   { color: var(--cyan); }
+    .prompt-cmd    { color: var(--white); }
+
+    /* ─── MAIN GREETING ─── */
+    .greeting-block {
+      margin: 20px 0 28px;
+    }
+
+    .greeting-comment {
+      color: var(--gray);
+      font-size: 13px;
+      line-height: 1.8;
+      animation: fadeIn 0.8s ease both;
+      animation-delay: 0.6s;
+    }
+    .greeting-comment span { color: var(--green-dim); }
+
+    .greeting-title {
+      font-size: clamp(26px, 5vw, 42px);
+      font-weight: 700;
+      font-family: 'Space Mono', monospace;
+      line-height: 1.2;
+      margin: 16px 0 8px;
+      animation: fadeIn 0.8s ease both;
+      animation-delay: 0.8s;
+    }
+
+    .eid-text {
+      background: linear-gradient(135deg, var(--green) 0%, var(--cyan) 50%, var(--purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 3s linear infinite;
+      background-size: 200%;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+
+    .greeting-sub {
+      color: var(--yellow);
+      font-size: clamp(13px, 2vw, 16px);
+      animation: fadeIn 0.8s ease both;
+      animation-delay: 1s;
+    }
+
+    /* ─── CODE CARD ─── */
+    .code-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      margin: 24px 0;
+      position: relative;
+      overflow: hidden;
+      animation: fadeIn 0.8s ease both;
+      animation-delay: 1.2s;
+    }
+
+    .code-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--green), var(--cyan), var(--purple));
+      animation: borderSlide 2s linear infinite;
+      background-size: 200%;
+    }
+
+    @keyframes borderSlide {
+      0%   { background-position: 0%; }
+      100% { background-position: 200%; }
+    }
+
+    .code-lang {
+      position: absolute;
+      top: 10px; right: 14px;
+      font-size: 10px;
+      color: var(--gray);
+      background: var(--bg3);
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+    }
+
+    .code-line {
+      font-size: 13.5px;
+      line-height: 2;
+      white-space: pre;
+    }
+
+    .kw    { color: var(--pink); }
+    .fn    { color: var(--cyan); }
+    .str   { color: var(--yellow); }
+    .num   { color: var(--orange); }
+    .cmt   { color: var(--gray); font-style: italic; }
+    .var   { color: var(--purple); }
+    .op    { color: var(--white); }
+    .prop  { color: var(--green); }
+    .punc  { color: var(--white); opacity: 0.6; }
+
+    /* ─── OUTPUT BLOCK ─── */
+    .output-block {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--green);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin: 20px 0;
+      animation: fadeIn 0.8s ease both;
+      animation-delay: 1.5s;
+    }
+
+    .output-label {
+      font-size: 10px;
+      color: var(--green);
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .output-msg {
+      font-size: 15px;
+      font-family: 'Space Mono', monospace;
+      line-height: 1.9;
+      color: var(--white);
+    }
+
+    .highlight-green  { color: var(--green); font-weight: 700; }
+    .highlight-yellow { color: var(--yellow); font-weight: 700; }
+    .highlight-cyan   { color: var(--cyan); }
+    .highlight-pink   { color: var(--pink); }
+
+    /* ─── STATUS BADGES ─── */
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 22px 0;
+      animation: fadeIn 0.8s ease both;
+      animation-delay: 1.7s;
+    }
+
+    .badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: var(--gray);
+      transition: all 0.2s;
+      cursor: default;
+    }
+    .badge:hover {
+      border-color: var(--green);
+      color: var(--white);
+      box-shadow: var(--glow-green);
+    }
+    .badge .dot-status {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(1.3); }
+    }
+
+    /* ─── PROGRESS BAR (Keikhlasan %) ─── */
+    .progress-section {
+      margin: 20px 0;
+      animation: fadeIn 0.8s ease both;
+      animation-delay: 1.9s;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--gray);
+      margin-bottom: 8px;
+    }
+
+    .progress-bar-bg {
+      background: var(--bg3);
+      border-radius: 4px;
+      height: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+      width: 0%;
+      transition: width 2s cubic-bezier(0.4,0,0.2,1);
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    /* ─── FOOTER COMMIT ─── */
+    .commit-line {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--gray);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      animation: fadeIn 0.8s ease both;
+      animation-delay: 2.1s;
+    }
+
+    .commit-hash {
+      font-family: 'Space Mono', monospace;
+      background: var(--bg3);
+      padding: 2px 8px;
+      border-radius: 4px;
+      color: var(--orange);
+      border: 1px solid var(--border);
+    }
+
+    /* ─── CURSOR BLINK ─── */
+    .cursor {
+      display: inline-block;
+      width: 9px;
+      height: 16px;
+      background: var(--green);
+      margin-left: 3px;
+      border-radius: 1px;
+      animation: blink 1s step-end infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0; }
+    }
+
+    /* ─── FLOATING PARTICLES ─── */
+    .particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .particle {
+      position: absolute;
+      font-size: 11px;
+      color: var(--green);
+      opacity: 0;
+      font-family: 'Fira Code', monospace;
+      animation: floatUp linear infinite;
+    }
+
+    @keyframes floatUp {
+      0%   { opacity: 0; transform: translateY(0) rotate(0deg); }
+      10%  { opacity: 0.6; }
+      90%  { opacity: 0.2; }
+      100% { opacity: 0; transform: translateY(-80vh) rotate(20deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── LANTERN EMOJI FLOAT ─── */
+    .lanterns {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      pointer-events: none;
+      z-index: 3;
+      height: 0;
+    }
+    .lantern {
+      position: absolute;
+      font-size: 20px;
+      animation: lanternFloat linear infinite;
+      opacity: 0;
+    }
+
+    @keyframes lanternFloat {
+      0%   { opacity: 0; transform: translateY(100vh) scale(0.8); }
+      10%  { opacity: 0.8; }
+      90%  { opacity: 0.5; }
+      100% { opacity: 0; transform: translateY(-20px) scale(1.1); }
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 520px) {
+      .terminal-body { padding: 18px 16px 24px; }
+      .code-line { font-size: 11.5px; white-space: pre-wrap; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Matrix Rain -->
+<canvas id="matrix"></canvas>
+
+<!-- Floating Particles -->
+<div class="particles" id="particles"></div>
+
+<!-- Floating Lanterns -->
+<div class="lanterns" id="lanterns"></div>
+
+<div class="container">
+  <div class="terminal-window">
+    <div class="terminal-bar">
+      <div class="dot red"></div>
+      <div class="dot yellow"></div>
+      <div class="dot green"></div>
+      <span class="terminal-title">~/eid/minal-aidin.js — bash</span>
+    </div>
+
+    <div class="terminal-body">
+
+      <!-- Prompt -->
+      <div class="prompt-line">
+        <span class="prompt-dollar">❯</span>
+        <span class="prompt-path">~/dev/lebaran</span>
+        <span class="op"> $ </span>
+        <span class="prompt-cmd">node minal-aidin.js --tahun=1446H</span>
+      </div>
+
+      <!-- Greeting Title -->
+      <div class="greeting-block">
+        <div class="greeting-comment">
+          <span>/**</span><br>
+          &nbsp;* 🌙 Selamat Hari Raya Idul Fitri 1446 H<br>
+          &nbsp;* @author  Seorang Programmer Muslim<br>
+          &nbsp;* @version 1446.0.0<br>
+          &nbsp;* @license MIT (Maaf & Ikhlas Tulus)<br>
+          &nbsp;<span>*/</span>
+        </div>
+
+        <h1 class="greeting-title">
+          <span class="eid-text">Minal Aidin</span><br>
+          <span class="eid-text">wal Faizin</span>
+        </h1>
+        <div class="greeting-sub">// Mohon Maaf Lahir &amp; Batin 🤲</div>
+      </div>
+
+      <!-- Code Card -->
+      <div class="code-card">
+        <span class="code-lang">JAVASCRIPT</span>
+
+        <div class="code-line"><span class="kw">const</span> <span class="var">eid</span> <span class="op">=</span> <span class="punc">{</span></div>
+        <div class="code-line">  <span class="prop">ucapan</span><span class="punc">:</span> <span class="str">"Minal Aidin wal Faizin"</span><span class="punc">,</span></div>
+        <div class="code-line">  <span class="prop">tahun</span><span class="punc">:</span>  <span class="num">1446</span><span class="punc">,</span></div>
+        <div class="code-line">  <span class="prop">maaf</span><span class="punc">:</span>   <span class="kw">true</span><span class="punc">,</span></div>
+        <div class="code-line">  <span class="prop">ikhlas</span><span class="punc">:</span> <span class="num">100</span><span class="punc">,</span>  <span class="cmt">// percent</span></div>
+        <div class="code-line"><span class="punc">};</span></div>
+        <br>
+        <div class="code-line"><span class="kw">async function</span> <span class="fn">kirimMaaf</span><span class="punc">(</span><span class="var">orang</span><span class="punc">)</span> <span class="punc">{</span></div>
+        <div class="code-line">  <span class="kw">const</span> <span class="var">salah</span> <span class="op">=</span> <span class="kw">await</span> <span class="fn">ambilKesalahan</span><span class="punc">(</span><span class="var">orang</span><span class="punc">);</span></div>
+        <div class="code-line">  <span class="kw">if</span> <span class="punc">(</span><span class="var">salah</span><span class="punc">.</span><span class="prop">length</span> <span class="op">&gt;</span> <span class="num">0</span><span class="punc">)</span> <span class="punc">{</span></div>
+        <div class="code-line">    <span class="fn">delete</span> <span class="var">salah</span><span class="punc">;</span>    <span class="cmt">// gc.collect(kesalahan)</span></div>
+        <div class="code-line">    <span class="kw">return</span> <span class="punc">{</span> <span class="prop">status</span><span class="punc">:</span> <span class="num">200</span><span class="punc">,</span> <span class="prop">msg</span><span class="punc">:</span> <span class="str">"Maaf diterima ✅"</span> <span class="punc">};</span></div>
+        <div class="code-line">  <span class="punc">}</span></div>
+        <div class="code-line">  <span class="kw">return</span> <span class="punc">{</span> <span class="prop">status</span><span class="punc">:</span> <span class="num">200</span><span class="punc">,</span> <span class="prop">msg</span><span class="punc">:</span> <span class="str">"Tetap maaf & sayang 💚"</span> <span class="punc">};</span></div>
+        <div class="code-line"><span class="punc">}</span></div>
+        <br>
+        <div class="code-line"><span class="fn">kirimMaaf</span><span class="punc">(</span><span class="str">"semua_orang"</span><span class="punc">);</span><span class="cursor"></span></div>
+      </div>
+
+      <!-- Output Block -->
+      <div class="output-block">
+        <div class="output-label">▶ OUTPUT</div>
+        <div class="output-msg">
+          🚀 <span class="highlight-green">Build success!</span> Ramadhan telah selesai.<br>
+          ✅ <span class="highlight-cyan">Deploy iman</span> ke server hati — 1446H<br>
+          💚 Semoga kita kembali ke <span class="highlight-yellow">fitrah</span> yang suci<br>
+          🤝 <span class="highlight-pink">Pull request</span> maaf telah di-<span class="highlight-green">merge</span><br>
+          🌙 <span class="highlight-cyan">Taqabbalallahu</span> minna wa minkum
+        </div>
+      </div>
+
+      <!-- Badges -->
+      <div class="badge-row">
+        <div class="badge"><div class="dot-status"></div> Iman: compiled</div>
+        <div class="badge"><div class="dot-status"></div> Puasa: 30/30 days</div>
+        <div class="badge"><div class="dot-status"></div> Bug dosa: resolved</div>
+        <div class="badge"><div class="dot-status"></div> Silaturahmi: online</div>
+        <div class="badge"><div class="dot-status"></div> Maaf: merged ✅</div>
+      </div>
+
+      <!-- Progress Bars -->
+      <div class="progress-section">
+        <div class="progress-label"><span>keikhlasan.exe</span><span id="p1-val">0%</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="p1" data-target="100"></div></div>
+        <br>
+        <div class="progress-label"><span>silaturahmi.connect()</span><span id="p2-val">0%</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="p2" data-target="95" style="background: linear-gradient(90deg, var(--purple), var(--pink));"></div></div>
+        <br>
+        <div class="progress-label"><span>bug_dosa.delete()</span><span id="p3-val">0%</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="p3" data-target="88" style="background: linear-gradient(90deg, var(--yellow), var(--orange));"></div></div>
+      </div>
+
+      <!-- Footer -->
+      <div class="commit-line">
+        <span class="commit-hash">a7f3c1d</span>
+        <span>feat: add eid 1446H greetings 🌙</span>
+        <span style="margin-left:auto; color: var(--green);">✓ verified</span>
+      </div>
+
+    </div><!-- /.terminal-body -->
+  </div><!-- /.terminal-window -->
+</div>
+
+<script>
+  // ── MATRIX RAIN ──────────────────────────────────────────
+  const canvas = document.getElementById('matrix');
+  const ctx    = canvas.getContext('2d');
+
+  function resizeCanvas() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  const chars = '01アイウエオカキクケコ{}[]();=>const function async return import export'.split('');
+  const fontSize = 13;
+  let columns = Math.floor(canvas.width / fontSize);
+  let drops   = Array(columns).fill(1);
+
+  function drawMatrix() {
+    ctx.fillStyle = 'rgba(13,17,23,0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#3fb950';
+    ctx.font      = fontSize + 'px Fira Code';
+
+    for (let i = 0; i < drops.length; i++) {
+      const text = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    }
+  }
+  setInterval(drawMatrix, 55);
+
+  // ── FLOATING CODE PARTICLES ───────────────────────────────
+  const snippets = ['{}', '=>', '()', '[];', 'fn()', 'null', 'true', '0x1', '&&', '||', '??', '//'];
+  const pContainer = document.getElementById('particles');
+
+  function spawnParticle() {
+    const el = document.createElement('div');
+    el.className = 'particle';
+    el.textContent = snippets[Math.floor(Math.random() * snippets.length)];
+    el.style.left     = Math.random() * 100 + 'vw';
+    el.style.bottom   = '-20px';
+    const dur = 8 + Math.random() * 10;
+    el.style.animationDuration = dur + 's';
+    el.style.animationDelay   = Math.random() * 2 + 's';
+    el.style.opacity = 0;
+    const colors = ['#3fb950','#58a6ff','#d2a8ff','#e3b341','#f0883e'];
+    el.style.color = colors[Math.floor(Math.random() * colors.length)];
+    pContainer.appendChild(el);
+    setTimeout(() => el.remove(), (dur + 2) * 1000);
+  }
+
+  for (let i = 0; i < 12; i++) {
+    setTimeout(spawnParticle, i * 600);
+  }
+  setInterval(spawnParticle, 1200);
+
+  // ── FLOATING LANTERNS ─────────────────────────────────────
+  const lanternEmojis = ['🌙','⭐','✨','🕌','🌟','🎉','💫'];
+  const lContainer = document.getElementById('lanterns');
+
+  function spawnLantern() {
+    const el = document.createElement('div');
+    el.className = 'lantern';
+    el.textContent = lanternEmojis[Math.floor(Math.random() * lanternEmojis.length)];
+    el.style.left = Math.random() * 100 + 'vw';
+    const dur = 12 + Math.random() * 10;
+    el.style.animationDuration  = dur + 's';
+    el.style.animationDelay     = Math.random() * 3 + 's';
+    el.style.fontSize = (16 + Math.random() * 16) + 'px';
+    lContainer.appendChild(el);
+    setTimeout(() => el.remove(), (dur + 3) * 1000);
+  }
+
+  for (let i = 0; i < 8; i++) setTimeout(spawnLantern, i * 1500);
+  setInterval(spawnLantern, 2500);
+
+  // ── PROGRESS BARS ─────────────────────────────────────────
+  function animateBar(barId, valId, target) {
+    const bar  = document.getElementById(barId);
+    const val  = document.getElementById(valId);
+    let current = 0;
+    const step  = target / 80;
+    const timer = setInterval(() => {
+      current = Math.min(current + step, target);
+      bar.style.width    = current + '%';
+      val.textContent    = Math.round(current) + '%';
+      if (current >= target) clearInterval(timer);
+    }, 25);
+  }
+
+  // Start bars after 2.4s (after animations appear)
+  setTimeout(() => {
+    animateBar('p1', 'p1-val', 100);
+    setTimeout(() => animateBar('p2', 'p2-val', 95),  200);
+    setTimeout(() => animateBar('p3', 'p3-val', 88),  400);
+  }, 2400);
+
+  // ── WINDOW RESIZE MATRIX FIX ──────────────────────────────
+  window.addEventListener('resize', () => {
+    columns = Math.floor(canvas.width / fontSize);
+    drops   = Array(columns).fill(1);
+  });
+</script>
+</body>
+</html>
